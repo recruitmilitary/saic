@@ -23,13 +23,13 @@ module SAIC
 
       page_links.pop # remove last item it's just an arrow
       Generator.new do |yielder|
-        parse_jobs(page).each do |job|
+        parse_jobs(page) do |job|
           yielder.yield job
         end
         page_links.each_with_index do |page_link, idx|
           next if idx == 0 # skip first page, we're already on it
           page = agent.get(BASE_URI + page_link['href'])
-          parse_jobs(page).each do |job|
+          parse_jobs(page) do |job|
             yielder.yield job
           end
         end
@@ -37,7 +37,6 @@ module SAIC
     end
 
     def self.parse_jobs(page)
-      jobs = []
       odd_job_rows  = page.search(".Rmax_JobListRow1")
       even_job_rows = page.search(".Rmax_JobListRow0")
       job_rows = odd_job_rows + even_job_rows
@@ -53,9 +52,8 @@ module SAIC
         job.country = split_location[2]
         job.posted_date = Date.parse tds[2].text
         job.url = BASE_URI + tds[0].at("a")['href']
-        jobs << job
+        yield job
       end
-      jobs
     end
 
     def self.strip_whitespace(text)
