@@ -5,7 +5,7 @@ describe SAIC do
   describe SAIC::Job do
     describe ".all" do
       it 'should fetch jobs from all pages' do
-        SAIC::Job.all.size.should == 51
+        SAIC::Job.all.entries.size.should == 51
       end
     end
 

@@ -1,3 +1,4 @@
+require 'backports'
 require 'open-uri'
 require 'mechanize'
 
@@ -20,17 +21,19 @@ module SAIC
       last_page_link = page_links[-2] # last entry is blank
       last_page_number = last_page_link.text.to_i
 
-      jobs = []
-
-      jobs.push(*parse_jobs(page))
       page_links.pop # remove last item it's just an arrow
-      page_links.each_with_index do |page_link, idx|
-        next if idx == 0 # skip first page, we're already on it
-        page = agent.get(BASE_URI + page_link['href'])
-        jobs.push(*parse_jobs(page))
+      Enumerator.new do |yielder|
+        parse_jobs(page).each do |job|
+          yielder.yield job
+        end
+        page_links.each_with_index do |page_link, idx|
+          next if idx == 0 # skip first page, we're already on it
+          page = agent.get(BASE_URI + page_link['href'])
+          parse_jobs(page).each do |job|
+            yielder.yield job
+          end
+        end
       end
-
-      jobs
     end
 
     def self.parse_jobs(page)
