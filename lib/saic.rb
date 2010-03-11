@@ -1,6 +1,6 @@
-require 'backports'
 require 'open-uri'
 require 'mechanize'
+require 'generator'
 
 module SAIC
   class Job
@@ -22,7 +22,7 @@ module SAIC
       last_page_number = last_page_link.text.to_i
 
       page_links.pop # remove last item it's just an arrow
-      Enumerator.new do |yielder|
+      Generator.new do |yielder|
         parse_jobs(page).each do |job|
           yielder.yield job
         end
