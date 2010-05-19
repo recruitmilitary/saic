@@ -63,16 +63,30 @@ module SAIC
     attr_accessor :title, :location, :city, :state, :country, :posted_date, :url
 
     def id
-      doc.at("table.Rmax_RegularText").search("tr")[5].search("td")[1].text
+      keep_trying do
+        doc.at("table.Rmax_RegularText").search("tr")[5].search("td")[1].text
+      end
     end
 
     def description
-      SAIC::Job.strip_whitespace doc.at("table.Rmax_RegularText").search("tr")[11].search("td")[1].text
+      keep_trying do
+        SAIC::Job.strip_whitespace doc.at("table.Rmax_RegularText").search("tr")[11].search("td")[1].text
+      end
     end
 
     private
     def doc
       @doc ||= Nokogiri::HTML(open(url))
+    end
+
+    def keep_trying(max_attempts = 5)
+      attempts = 0
+      yield
+    rescue NoMethodError
+      sleep 0.25
+      @doc = nil
+      attempts += 1
+      retry unless attempts > max_attempts
     end
   end
 end
