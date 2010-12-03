@@ -13,6 +13,7 @@ module SAIC
 
     def self.parse(uri)
       agent = Mechanize.new
+      agent.verify_callback = true
       page = agent.get(SEARCH_URI)
 
       page_links = page.search(".Rmax_RegularText td a")
