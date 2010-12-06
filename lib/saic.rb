@@ -1,3 +1,4 @@
+require 'net/https'
 require 'open-uri'
 require 'mechanize'
 require 'generator'
@@ -77,7 +78,16 @@ module SAIC
 
     private
     def doc
-      @doc ||= Nokogiri::HTML(open(url))
+      @doc ||= begin
+                 uri              = URI.parse(url)
+                 http             = Net::HTTP.new(uri.host, uri.port)
+                 http.use_ssl     = true
+                 http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+                 response         = http.start do |conn|
+                   conn.get("#{uri.path}?#{uri.query}")
+                 end
+                 Nokogiri::HTML(response.body)
+               end
     end
 
     def keep_trying(max_attempts = 5)
